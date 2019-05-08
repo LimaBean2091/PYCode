@@ -4,7 +4,9 @@ import time;
 start = time.time();
 
 debug = False;
+
 default_charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 `~!@#$%^&*()_+-=[]\{}|;\':",./<>?'
+strs = '';
 
 def printError(message):
     print("{0}: error: {1}".format(sys.argv[0],message));
@@ -17,7 +19,6 @@ def printDebug(message):
 def getCharset():
     try:
         with open('charset.txt','r') as f:
-            printDebug("file charset: {0}, LEN: {1}".format(f.read(),len(f.read())));
             return f.read();
     except Exception:
         printWarning("error reading charset file. Using default charset.");
@@ -25,8 +26,6 @@ def getCharset():
             f.write(default_charset);
             printDebug("Wrote file charset: {0}, LEN: {1}".format(default_charset,len(default_charset)));
         return default_charset;
-strs = getCharset();
-printDebug("Strs: {0}, {1}".format(strs,getCharset()));
 def shifttext(shift,inp):
     data = []
     for i in inp:
@@ -70,10 +69,11 @@ def encode(toEncode_,codeword_):
     printDebug("Encoding: {0}, {1}".format(toEncode_,codeword_));
     for c in toEncode_:
         v = codeword_[i];
+        printDebug("C: {0}, V: {1}".format(c,v));
         try:
             word += getLetter(getIndex(v),getAlphabet(getIndex(c)));
         except Exception:
-            printError("charset does not contain character: '{0}' (Hint: Try using --usedefaultcharset or modify the charset.)".format(c));
+            printError("charset does not contain character: '{0}' or '{1}' (Hint: Try using --usedefaultcharset or modify the charset.) CHARSET: {2}".format(c,v,strs));
             break;
         i+=1;
         printDebug("ALPH: {0}, INDEX_V: {1}, INDEX_C: {2}, LETTER_F: {3}, LETTER_ORG: {4}".format(getAlphabet(getIndex(c)),getIndex(v),getIndex(c),getLetter(getIndex(v),getAlphabet(getIndex(c))),c));
@@ -108,7 +108,8 @@ def printUsage(code,message):
 esd = ''
 decodeM = False
 codeword = '';
-
+strs = getCharset();
+table = gentable();
 if len(sys.argv) >= 2:
     codeword = sys.argv[1];
     for i in range(2,len(sys.argv)):
@@ -124,8 +125,10 @@ if len(sys.argv) >= 2:
                 print("Debug Mode");
                 debug = True;
                 table = gentable();
+                strs = getCharset();
+                printDebug("file charset: {0}, LEN: {1}".format(strs,len(strs)));
         else:
-            esd += sys.argv[i] + " ";               
+            esd += sys.argv[i] + " ";
     if (esd == ''):
         printUsage(codeword,esd);
         sys.exit();
